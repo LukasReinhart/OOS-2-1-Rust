@@ -1,5 +1,6 @@
 use std::fmt;
 use std::sync::Mutex;
+use std::thread;
 use rand;
 
 pub struct WorldMap {
@@ -78,18 +79,26 @@ impl WorldMap {
 
 pub mod robots {
     use super::*;
-    pub struct RandomBot {
+
+    pub struct RandomBot<'a> {
         id: usize,
+        thread: Option<thread::JoinHandle<()>>,
+
         score: usize,
-        //map: &WorldMap,
+        map: &'a WorldMap,
+        x: usize,
+        y: usize,
     }
 
-    impl RandomBot {
-        pub fn new(id: usize, map: &WorldMap) -> Self {
+    impl<'a> RandomBot<'a> {
+        pub fn new(id: usize, map: &'a WorldMap) -> Self {
             RandomBot {
                 id,
+                thread: None,
                 score: 0,
-                //map,
+                map,
+                x: 0,
+                y: 0,
             }
         }
 
@@ -97,9 +106,28 @@ pub mod robots {
         pub fn score(&self) -> usize {
             self.score
         }
+
+        pub fn run(&mut self) {
+            self.thread = Some(thread::spawn( ||
+                while self.map.points_left() > 0 {
+                    //TODO step in random (within bounds) direction
+                    //rand::random::<u8>() % 4
+                    
+                    self.score += self.map.deduct_score_at(self.x, self.y);
+                    // give others a chance?
+                    thread::yield_now();
+                } 
+            ));
+        }
+
+        pub fn finish(&mut self) {
+            if let Some(my_thread) = self.thread {
+                my_thread.join();
+            }
+        }
     }
 
-    impl fmt::Display for RandomBot {
+    impl<'a> fmt::Display for RandomBot<'a> {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             write!(f, "RandomBot #{} (score: {})", self.id, self.score)
         }

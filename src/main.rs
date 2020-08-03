@@ -41,13 +41,20 @@ fn main() -> Result<(), Box<dyn Error>> {
         robots.push(new_robot);
     }
 
+    /*
     while map.points_left() > 0 {
         thread::yield_now(); //TODO consider switching to Condvar
+    }
+    */
+    for robot in &mut robots {
+        robot.run();
+    }
+    for robot in &mut robots {
+        robot.finish();
     }
 
     let mut best_robot = &robots[0];
     for robot in &robots {
-        //TODO join threads
         if robot.score() > best_robot.score() {
             best_robot = &robot;
         }
