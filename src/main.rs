@@ -47,6 +47,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut best_robot = &robots[0];
     for robot in &robots {
+        //TODO join threads
         if robot.score() > best_robot.score() {
             best_robot = &robot;
         }
