@@ -5,6 +5,8 @@ use std::io;
 use std::error::Error;
 use std::str::FromStr;
 use std::thread;
+use std::sync::Arc;
+
 
 fn get_user_input<T>(fancyname: &str) -> T
 where T: FromStr {
@@ -34,33 +36,38 @@ fn main() -> Result<(), Box<dyn Error>> {
     let map = WorldMap::new(map_size, map_size);
     map.randomize_fields(max_field_score);
 
+    let map = Arc::new(map);
+
     let mut robots = Vec::with_capacity(amount_robots);
 
     for i in 0..amount_robots {
-        let new_robot = RandomBot::new(i, &map);
+        let new_robot = RandomBot::new(i, Arc::clone(&map));
         robots.push(new_robot);
     }
+    
+    let mut threads = Vec::with_capacity(amount_robots);
+    let mut results = Vec::with_capacity(amount_robots);
 
-    /*
-    while map.points_left() > 0 {
-        thread::yield_now(); //TODO consider switching to Condvar
+    for robot in robots.pop() {
+        let new_thread = thread::spawn( move || {robot.run()} );
+        threads.push(new_thread);
     }
-    */
-    for robot in &mut robots {
-        robot.run();
-    }
-    for robot in &mut robots {
-        robot.finish();
+    for new_thread in threads {
+        match new_thread.join() {
+            Ok(thing) => results.push(thing),
+            _ => continue
+        }
+        
     }
 
-    let mut best_robot = &robots[0];
-    for robot in &robots {
-        if robot.score() > best_robot.score() {
+    let mut best_robot = &results[0];
+    for robot in &results {
+        if robot.0 > best_robot.0 {
             best_robot = &robot;
         }
     }
 
-    println!("Best Robot was {}", best_robot);
+    println!("Best Robot was {}", best_robot.1);
 
     Ok(())
 }
