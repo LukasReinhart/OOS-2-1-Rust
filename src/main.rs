@@ -41,7 +41,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut robots = Vec::with_capacity(amount_robots);
 
     for i in 0..amount_robots {
-        let new_robot = RandomBot::new(i, Arc::clone(&map));
+        let mut new_robot = RandomBot::new(i, Arc::clone(&map));
+        new_robot.randomize_position();
         robots.push(new_robot);
     }
     

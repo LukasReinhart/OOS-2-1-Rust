@@ -38,7 +38,7 @@ impl WorldMap {
             if let Ok(points_left) = self.points_left.lock() {
                 let mut points_left = points_left;
 
-                for i in 0..self.width * self.height {
+                for i in 0..fields.len() {
                     let new_points = (rand::random::<usize>() % max_field_score) + 1;
                     *points_left += new_points - fields[i];
                     fields[i] = new_points;
@@ -76,6 +76,13 @@ impl WorldMap {
             0
         }
     }
+
+    pub fn width(&self) -> usize {
+        self.width
+    }
+    pub fn height(&self) -> usize {
+        self.height
+    }
 }
 
 pub mod robots {
@@ -106,10 +113,42 @@ pub mod robots {
             self.score
         }
 
+        // Teleports the robot to a random position (within world map bounds).
+        pub fn randomize_position(&mut self) {
+            self.x = rand::random::<usize>() % self.map.width();
+            self.y = rand::random::<usize>() % self.map.height();
+        }
+
+        /// Step in random (within world map bounds) direction.
+        fn step(&mut self) {
+            let dir = rand::random::<u8>() % 4;
+
+            for i in 0..4 {
+                let dir = (dir + i) % 4;
+
+                if dir == 0 && self.x > 0 {
+                    self.x -= 1;
+                    return;
+                }
+                else if dir == 1 && self.y > 0 {
+                    self.y -= 1;
+                    return;
+                }
+                else if dir == 2 && self.x < self.map.width() - 1 {
+                    self.x += 1;
+                    return;
+                }
+                else if dir == 3 && self.y < self.map.height() - 1 {
+                    self.y += 1;
+                    return;
+                }
+            }
+        }
+
+        /// Unleashes the robot, letting it go on an uncontrollable rampage through its world map until all score is gone.
         pub fn run(mut self) -> (usize, String) {
             while self.map.points_left() > 0 {
-                //TODO step in random (within bounds) direction
-                //rand::random::<u8>() % 4
+                self.step();
                 
                 self.score += self.map.deduct_score_at(self.x, self.y);
                 // give others a chance?
