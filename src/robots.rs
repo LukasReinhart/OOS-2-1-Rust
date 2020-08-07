@@ -1,10 +1,11 @@
 use std::sync::Arc;
 use std::fmt;
 use std::thread;
+use std::ops::{Deref, DerefMut};
 
 use crate::WorldMap;
 
-pub struct RandomBot {
+pub struct RobotCore {
     id: usize,
 
     score: usize,
@@ -13,9 +14,9 @@ pub struct RandomBot {
     y: usize,
 }
 
-impl RandomBot {
+impl RobotCore {
     pub fn new(id: usize, map: Arc<WorldMap>) -> Self {
-        RandomBot {
+        RobotCore {
             id,
             score: 0,
             map,
@@ -35,49 +36,82 @@ impl RandomBot {
         self.y = rand::random::<usize>() % self.map.height();
     }
 
-    /// Step in random (within world map bounds) direction.
-    fn step(&mut self) {
-        let dir = rand::random::<u8>() % 4;
-
-        for i in 0..4 {
-            let dir = (dir + i) % 4;
-
-            if dir == 0 && self.x > 0 {
-                self.x -= 1;
-                return;
-            }
-            else if dir == 1 && self.y > 0 {
-                self.y -= 1;
-                return;
-            }
-            else if dir == 2 && self.x < self.map.width() - 1 {
-                self.x += 1;
-                return;
-            }
-            else if dir == 3 && self.y < self.map.height() - 1 {
-                self.y += 1;
-                return;
-            }
-        }
-    }
-
-    /// Unleashes the robot, letting it go on an uncontrollable rampage through its world map until all score is gone.
-    pub fn run(mut self) -> (usize, String) {
+    /// Programs and unleashes the robot, sending it on an uncontrollable rampage through its world map until all score is gone.
+    pub fn run(&mut self, step_fn: fn(&mut Self)) {
         while self.map.points_left() > 0 {
-            self.step();
+            step_fn(self);
             
             self.score += self.map.deduct_score_at(self.x, self.y);
             // give others a chance?
             thread::yield_now();
         }
-        (self.score, self.to_string())
     }
 
+}
+
+
+pub struct RandomBot(RobotCore);
+
+impl Deref for RandomBot {
+    type Target = RobotCore;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for RandomBot {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
 }
 
 impl fmt::Display for RandomBot {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "RandomBot #{} (score: {})", self.id, self.score)
+    }
+}
+
+impl RandomBot {
+    pub fn new(id: usize, map: Arc<WorldMap>) -> Self {
+        RandomBot(
+            RobotCore::new(id, map)
+        )
+    }
+
+    /// Step in random (within world map bounds) direction.
+    fn step_fn(robot: &mut RobotCore) {
+        let dir = rand::random::<u8>() % 4;
+
+        for i in 0..4 {
+            let dir = (dir + i) % 4;
+
+            if dir == 0 && robot.x > 0 {
+                robot.x -= 1;
+                return;
+            }
+            else if dir == 1 && robot.y > 0 {
+                robot.y -= 1;
+                return;
+            }
+            else if dir == 2 && robot.x < robot.map.width() - 1 {
+                robot.x += 1;
+                return;
+            }
+            else if dir == 3 && robot.y < robot.map.height() - 1 {
+                robot.y += 1;
+                return;
+            }
+        }
+    }
+
+    pub fn step(&mut self) {
+        Self::step_fn(&mut self.0);
+    }
+
+    pub fn run(mut self) -> (usize, String) {
+        self.0.run(Self::step_fn);
+        (self.score, self.to_string())
     }
 }
 
