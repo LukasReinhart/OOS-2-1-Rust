@@ -6,6 +6,7 @@ use std::error::Error;
 use std::str::FromStr;
 use std::thread;
 use std::sync::Arc;
+use std::time::SystemTime;
 
 
 fn get_user_input<T>(fancyname: &str) -> T
@@ -49,6 +50,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut threads = Vec::with_capacity(amount_robots);
     let mut results = Vec::with_capacity(amount_robots);
 
+    let start_time = SystemTime::now();
+
     for robot in robots.pop() {
         let new_thread = thread::spawn( move || {robot.run()} );
         threads.push(new_thread);
@@ -59,6 +62,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             _ => continue
         }
         
+    }
+
+    match start_time.elapsed() {
+        Ok(duration) => println!("The robots worked for {} ms.", duration.as_millis()),
+        Err(_) => println!("Could not determine duration."),
     }
 
     let mut best_robot = &results[0];
