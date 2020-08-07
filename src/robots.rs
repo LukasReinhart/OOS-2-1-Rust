@@ -16,7 +16,7 @@ pub struct RobotCore {
 
 impl RobotCore {
     pub fn new(id: usize, map: Arc<WorldMap>) -> Self {
-        RobotCore {
+        Self {
             id,
             score: 0,
             map,
@@ -74,7 +74,7 @@ impl fmt::Display for RandomBot {
 
 impl RandomBot {
     pub fn new(id: usize, map: Arc<WorldMap>) -> Self {
-        RandomBot(
+        Self(
             RobotCore::new(id, map)
         )
     }
@@ -115,12 +115,102 @@ impl RandomBot {
     }
 }
 
+
+pub struct NearsightBot(RobotCore);
+
+impl Deref for NearsightBot {
+    type Target = RobotCore;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for NearsightBot {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl fmt::Display for NearsightBot {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "NearsightBot #{} (score: {})", self.id, self.score)
+    }
+}
+
+impl NearsightBot {
+    pub fn new(id: usize, map: Arc<WorldMap>) -> Self {
+        Self(
+            RobotCore::new(id, map)
+        )
+    }
+
+    /// Step in random (within world map bounds) direction.
+    fn step_fn(robot: &mut RobotCore) {
+        let dir = rand::random::<u8>() % 4;
+
+        // Go to score if possible
+        for i in 0..4 {
+            let dir = (dir + i) % 4;
+
+            if dir == 0 && robot.x > 0 && robot.map.points_at(robot.x-1, robot.y) > 0 {
+                robot.x -= 1;
+                return;
+            }
+            else if dir == 1 && robot.y > 0 && robot.map.points_at(robot.x, robot.y-1) > 0 {
+                robot.y -= 1;
+                return;
+            }
+            else if dir == 2 && robot.x < robot.map.width() - 1 && robot.map.points_at(robot.x+1, robot.y) > 0 {
+                robot.x += 1;
+                return;
+            }
+            else if dir == 3 && robot.y < robot.map.height() - 1 && robot.map.points_at(robot.x, robot.y+1) > 0 {
+                robot.y += 1;
+                return;
+            }
+        }
+
+        // Go elsewhere to find score farther away
+        for i in 0..4 {
+            let dir = (dir + i) % 4;
+
+            if dir == 0 && robot.x > 0 {
+                robot.x -= 1;
+                return;
+            }
+            else if dir == 1 && robot.y > 0 {
+                robot.y -= 1;
+                return;
+            }
+            else if dir == 2 && robot.x < robot.map.width() - 1 {
+                robot.x += 1;
+                return;
+            }
+            else if dir == 3 && robot.y < robot.map.height() - 1 {
+                robot.y += 1;
+                return;
+            }
+        }
+    }
+
+    pub fn step(&mut self) {
+        Self::step_fn(&mut self.0);
+    }
+
+    pub fn run(mut self) -> (usize, String) {
+        self.0.run(Self::step_fn);
+        (self.score, self.to_string())
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn can_move_updown() {
+    fn randombot_can_move_updown() {
         let map = Arc::new(WorldMap::new(1, 2));
         let mut new_robot = RandomBot::new(0, Arc::clone(&map));
 
@@ -134,9 +224,37 @@ mod tests {
     }
 
     #[test]
-    fn can_move_leftright() {
+    fn randombot_can_move_leftright() {
         let map = Arc::new(WorldMap::new(2, 1));
         let mut new_robot = RandomBot::new(0, Arc::clone(&map));
+
+        new_robot.step();
+        assert_eq!(new_robot.x, 1);
+        assert_eq!(new_robot.y, 0);
+
+        new_robot.step();
+        assert_eq!(new_robot.x, 0);
+        assert_eq!(new_robot.y, 0);
+    }
+
+    #[test]
+    fn nearsightbot_can_move_updown() {
+        let map = Arc::new(WorldMap::new(1, 2));
+        let mut new_robot = NearsightBot::new(0, Arc::clone(&map));
+
+        new_robot.step();
+        assert_eq!(new_robot.x, 0);
+        assert_eq!(new_robot.y, 1);
+
+        new_robot.step();
+        assert_eq!(new_robot.x, 0);
+        assert_eq!(new_robot.y, 0);
+    }
+
+    #[test]
+    fn nearsightbot_can_move_leftright() {
+        let map = Arc::new(WorldMap::new(2, 1));
+        let mut new_robot = NearsightBot::new(0, Arc::clone(&map));
 
         new_robot.step();
         assert_eq!(new_robot.x, 1);

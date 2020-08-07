@@ -65,6 +65,15 @@ impl WorldMap {
         harvested
     }
 
+    pub fn points_at(&self, x: usize, y: usize) -> usize {
+        if let Ok(fields) = self.fields.lock() {
+            let idx = self.position_index(x, y);
+            fields[idx]
+        } else {
+            0
+        }
+    }
+
     /// Returns an internal counter of points remaining on the fields.
     pub fn points_left(&self) -> usize {
         if let Ok(points_left) = self.points_left.lock() {

@@ -1,6 +1,7 @@
 use fhtw_roboter_wettsammeln;
 use fhtw_roboter_wettsammeln::WorldMap;
 use fhtw_roboter_wettsammeln::robots::RandomBot;
+use fhtw_roboter_wettsammeln::robots::NearsightBot;
 use std::io;
 use std::error::Error;
 use std::str::FromStr;
@@ -32,27 +33,38 @@ fn main() -> Result<(), Box<dyn Error>> {
     //TODO restrict input to >0 somehow (custom type? closure arg?)
     let map_size: usize = get_user_input("Map Size");
     let max_field_score: usize = get_user_input("Max Field Score");
-    let amount_robots: usize = get_user_input("Amount Robots");
+    let amount_randombots: usize = get_user_input("Amount RandomBots");
+    let amount_nearsightbots: usize = get_user_input("Amount NearsightBots");
 
     let map = WorldMap::new(map_size, map_size);
     map.randomize_fields(max_field_score);
 
     let map = Arc::new(map);
 
-    let mut robots = Vec::with_capacity(amount_robots);
+    let mut randombots = Vec::with_capacity(amount_randombots);
+    let mut nearsightbots = Vec::with_capacity(amount_randombots);
 
-    for i in 0..amount_robots {
+    for i in 0..amount_randombots {
         let mut new_robot = RandomBot::new(i, Arc::clone(&map));
         new_robot.randomize_position();
-        robots.push(new_robot);
+        randombots.push(new_robot);
+    }
+    for i in 0..amount_nearsightbots {
+        let mut new_robot = NearsightBot::new(i, Arc::clone(&map));
+        new_robot.randomize_position();
+        nearsightbots.push(new_robot);
     }
     
-    let mut threads = Vec::with_capacity(amount_robots);
-    let mut results = Vec::with_capacity(amount_robots);
+    let mut threads = Vec::with_capacity(amount_randombots + amount_nearsightbots);
+    let mut results = Vec::with_capacity(amount_randombots + amount_nearsightbots);
 
     let start_time = SystemTime::now();
 
-    for robot in robots.pop() {
+    for robot in randombots.pop() {
+        let new_thread = thread::spawn( move || {robot.run()} );
+        threads.push(new_thread);
+    }
+    for robot in nearsightbots.pop() {
         let new_thread = thread::spawn( move || {robot.run()} );
         threads.push(new_thread);
     }
