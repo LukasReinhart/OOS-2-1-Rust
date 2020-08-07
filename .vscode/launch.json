@@ -1,0 +1,121 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'fhtw_roboter_wettsammeln'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=fhtw_roboter_wettsammeln"
+                ],
+                "filter": {
+                    "name": "fhtw_roboter_wettsammeln",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'fhtw_roboter_wettsammeln'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=fhtw_roboter_wettsammeln",
+                    "--package=fhtw_roboter_wettsammeln"
+                ],
+                "filter": {
+                    "name": "fhtw_roboter_wettsammeln",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'fhtw_roboter_wettsammeln'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=fhtw_roboter_wettsammeln",
+                    "--package=fhtw_roboter_wettsammeln"
+                ],
+                "filter": {
+                    "name": "fhtw_roboter_wettsammeln",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'robot_score'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=robot_score",
+                    "--package=fhtw_roboter_wettsammeln"
+                ],
+                "filter": {
+                    "name": "robot_score",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'worldmap_basic_deduction'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=worldmap_basic_deduction",
+                    "--package=fhtw_roboter_wettsammeln"
+                ],
+                "filter": {
+                    "name": "worldmap_basic_deduction",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'worldmap_total_score'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=worldmap_total_score",
+                    "--package=fhtw_roboter_wettsammeln"
+                ],
+                "filter": {
+                    "name": "worldmap_total_score",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
