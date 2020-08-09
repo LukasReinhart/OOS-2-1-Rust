@@ -5,6 +5,12 @@ use std::thread;
 use crate::WorldPosition;
 use crate::WorldMap;
 
+pub trait Robot {
+    fn randomize_position(&mut self);
+    fn score(&self) -> usize;
+    fn run(&mut self) -> (usize, String);
+}
+
 
 pub struct RandomBot {
     id: usize,
@@ -29,24 +35,26 @@ impl RandomBot {
         }
     }
 
-    pub fn randomize_position(&mut self) {
-        self.pos.randomize();
-    }
-
-    /// Returns the amount of score points collected by the robot.
-    pub fn score(&self) -> usize {
-        self.score
-    }
-
     /// Step in random (within world map bounds) direction.
     fn step(&mut self) {
         if let Some(new_pos) = try_step(&self.pos, &self.map, false) {
             self.pos = new_pos;
         }
     }
+}
+
+impl Robot for RandomBot {
+    fn randomize_position(&mut self) {
+        self.pos.randomize();
+    }
+
+    /// Returns the amount of score points collected by the robot.
+    fn score(&self) -> usize {
+        self.score
+    }
 
     /// Programs and unleashes the robot, sending it on an uncontrollable rampage through its world map until all score is gone.
-    pub fn run(&mut self) -> (usize, String) {
+    fn run(&mut self) -> (usize, String) {
         while self.map.points_left() > 0 {
             // move
             self.step();
@@ -85,16 +93,6 @@ impl NearsightBot {
         }
     }
 
-
-    pub fn randomize_position(&mut self) {
-        self.pos.randomize();
-    }
-
-    /// Returns the amount of score points collected by the robot.
-    pub fn score(&self) -> usize {
-        self.score
-    }
-
     /// Step in random (within world map bounds) direction.
     fn step(&mut self) {
         // Go to score if possible
@@ -108,9 +106,20 @@ impl NearsightBot {
 
         self.score += self.map.deduct_score_at(&self.pos);
     }
+}
+
+impl Robot for NearsightBot {
+    fn randomize_position(&mut self) {
+        self.pos.randomize();
+    }
+
+    /// Returns the amount of score points collected by the robot.
+    fn score(&self) -> usize {
+        self.score
+    }
 
     /// Programs and unleashes the robot, sending it on an uncontrollable rampage through its world map until all score is gone.
-    pub fn run(&mut self) -> (usize, String) {
+    fn run(&mut self) -> (usize, String) {
         while self.map.points_left() > 0 {
             // move
             self.step();
@@ -125,7 +134,7 @@ impl NearsightBot {
     }
 }
 
-
+/// Shared function for taking a step in a random, valid direction. Optionally only considers tiles with score.
 fn try_step(current_pos: &WorldPosition, map: &WorldMap, check_score: bool) -> Option<WorldPosition> {
     let dir = rand::random::<u8>() % 4;
 

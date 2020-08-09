@@ -1,7 +1,6 @@
 use fhtw_roboter_wettsammeln;
 use fhtw_roboter_wettsammeln::WorldMap;
-use fhtw_roboter_wettsammeln::robots::RandomBot;
-use fhtw_roboter_wettsammeln::robots::NearsightBot;
+use fhtw_roboter_wettsammeln::robots::{Robot, RandomBot, NearsightBot};
 use std::io;
 use std::error::Error;
 use std::str::FromStr;

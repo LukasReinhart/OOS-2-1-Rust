@@ -1,4 +1,5 @@
 use fhtw_roboter_wettsammeln::WorldMap;
+use fhtw_roboter_wettsammeln::robots::Robot;
 use fhtw_roboter_wettsammeln::robots::RandomBot;
 use std::sync::Arc;
 
