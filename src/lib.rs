@@ -154,6 +154,28 @@ pub mod robots;
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn worldpos_getset_x_y() {
+        let map = WorldMap::new(5, 5);
+        let mut pos = WorldPosition::new(&map, 2, 3);
+        assert_eq!(pos.x(), 2);
+        assert_eq!(pos.y(), 3);
+        pos.set_x(1);
+        pos.set_y(4);
+        assert_eq!(pos.x(), 1);
+        assert_eq!(pos.y(), 4);
+    }
+
+    #[test]
+    fn worldpos_bounded_set_x_y() {
+        let map = WorldMap::new(5, 5);
+        let mut pos = WorldPosition::new(&map, 2, 3);
+        pos.set_x(8);
+        pos.set_y(8);
+        assert_ne!(pos.x(), 8);
+        assert_ne!(pos.y(), 8);
+    }
     
     #[test]
     fn worldmap_total_score() {
@@ -163,10 +185,29 @@ mod tests {
     }
 
     #[test]
+    fn worldmap_score_at() {
+        let map = WorldMap::new(5, 5);
+        map.randomize_fields(5);
+        let pos = WorldPosition::new(&map, 2, 2);
+        assert_ne!(map.points_at(&pos), 0);
+    }
+
+    #[test]
     fn worldmap_basic_deduction() {
         let map = WorldMap::new(5, 5);
         map.randomize_fields(5);
         let pos = WorldPosition::new(&map, 2, 2);
         assert_eq!(map.deduct_score_at(&pos), 1);
+    }
+
+    #[test]
+    fn worldmap_score_at_deduction() {
+        let map = WorldMap::new(5, 5);
+        map.randomize_fields(5);
+        let pos = WorldPosition::new(&map, 2, 2);
+        let score_before = map.points_at(&pos);
+        map.deduct_score_at(&pos);
+        let score_after = map.points_at(&pos);
+        assert_eq!(score_before, score_after + 1);
     }
 }

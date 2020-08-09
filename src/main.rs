@@ -60,11 +60,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     let start_time = SystemTime::now();
 
     for mut robot in randombots.pop() {
-        let new_thread = thread::spawn( move || {robot.run()} );
+        let new_thread = thread::spawn( move || {
+            robot.run();
+            (robot.score(), robot.to_string())
+        } );
         threads.push(new_thread);
     }
     for mut robot in nearsightbots.pop() {
-        let new_thread = thread::spawn( move || {robot.run()} );
+        let new_thread = thread::spawn( move || {
+            robot.run();
+            (robot.score(), robot.to_string())
+        } );
         threads.push(new_thread);
     }
     for new_thread in threads {

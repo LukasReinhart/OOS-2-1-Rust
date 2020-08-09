@@ -8,7 +8,7 @@ use crate::WorldMap;
 pub trait Robot {
     fn randomize_position(&mut self);
     fn score(&self) -> usize;
-    fn run(&mut self) -> (usize, String);
+    fn run(&mut self);
 }
 
 
@@ -54,7 +54,7 @@ impl Robot for RandomBot {
     }
 
     /// Programs and unleashes the robot, sending it on an uncontrollable rampage through its world map until all score is gone.
-    fn run(&mut self) -> (usize, String) {
+    fn run(&mut self) {
         while self.map.points_left() > 0 {
             // move
             self.step();
@@ -65,7 +65,6 @@ impl Robot for RandomBot {
             // end of turn
             thread::yield_now();
         }
-        (self.score, self.to_string())
     }
 }
 
@@ -119,7 +118,7 @@ impl Robot for NearsightBot {
     }
 
     /// Programs and unleashes the robot, sending it on an uncontrollable rampage through its world map until all score is gone.
-    fn run(&mut self) -> (usize, String) {
+    fn run(&mut self) {
         while self.map.points_left() > 0 {
             // move
             self.step();
@@ -130,7 +129,6 @@ impl Robot for NearsightBot {
             // end of turn
             thread::yield_now();
         }
-        (self.score, self.to_string())
     }
 }
 
