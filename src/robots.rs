@@ -9,7 +9,7 @@ use crate::WorldMap;
 pub trait Robot {
     /// Teleports the Robot to a random location in the map.
     fn randomize_position(&mut self);
-    /// Returns the amount of score points collected by the robot.
+    /// Returns the amount of score collected by the robot.
     fn score(&self) -> usize;
     /// Sends Robot on an uncontrollable rampage through its world map until all score is gone.
     fn run(&mut self);
@@ -57,7 +57,7 @@ impl Robot for RandomBot {
     }
 
     fn run(&mut self) {
-        while self.map.points_left() > 0 {
+        while self.map.score_left() > 0 {
             // move
             self.step();
 
@@ -119,7 +119,7 @@ impl Robot for NearsightBot {
     }
 
     fn run(&mut self) {
-        while self.map.points_left() > 0 {
+        while self.map.score_left() > 0 {
             // move
             self.step();
 
@@ -148,7 +148,7 @@ fn try_step(current_pos: &WorldPosition, map: &WorldMap, check_score: bool) -> O
                 if x > 0 {
                     let mut new_pos = current_pos.clone();
                     new_pos.set_x( new_pos.x() - 1 );
-                    if !check_score || map.points_at(&new_pos) > 0 {
+                    if !check_score || map.score_at(&new_pos) > 0 {
                         return Some(new_pos);
                     }
                 }
@@ -158,7 +158,7 @@ fn try_step(current_pos: &WorldPosition, map: &WorldMap, check_score: bool) -> O
                 if y > 0 {
                     let mut new_pos = current_pos.clone();
                     new_pos.set_y( new_pos.y() - 1 );
-                    if !check_score || map.points_at(&new_pos) > 0 {
+                    if !check_score || map.score_at(&new_pos) > 0 {
                         return Some(new_pos);
                     }
                 }
@@ -168,7 +168,7 @@ fn try_step(current_pos: &WorldPosition, map: &WorldMap, check_score: bool) -> O
                 if x < map.width() - 1 {
                     let mut new_pos = current_pos.clone();
                     new_pos.set_x( new_pos.x() + 1 );
-                    if !check_score || map.points_at(&new_pos) > 0 {
+                    if !check_score || map.score_at(&new_pos) > 0 {
                         return Some(new_pos);
                     }
                 }
@@ -178,7 +178,7 @@ fn try_step(current_pos: &WorldPosition, map: &WorldMap, check_score: bool) -> O
                 if y < map.height() - 1 {
                     let mut new_pos = current_pos.clone();
                     new_pos.set_y( new_pos.y() + 1 );
-                    if !check_score || map.points_at(&new_pos) > 0 {
+                    if !check_score || map.score_at(&new_pos) > 0 {
                         return Some(new_pos);
                     }
                 }

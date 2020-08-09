@@ -6,11 +6,11 @@ use std::sync::Arc;
 fn randombot_score() {
     let map = Arc::new(WorldMap::new(1, 1));
     map.randomize_fields(1);
-    assert_eq!(map.points_left(), 1);
+    assert_eq!(map.score_left(), 1);
 
     let mut new_robot = RandomBot::new(0, Arc::clone(&map));
     new_robot.run();
-    assert_eq!(map.points_left(), 0);
+    assert_eq!(map.score_left(), 0);
     assert_eq!(new_robot.score(), 1);
 }
 
@@ -18,10 +18,10 @@ fn randombot_score() {
 fn nearsightbot_score() {
     let map = Arc::new(WorldMap::new(1, 1));
     map.randomize_fields(1);
-    assert_eq!(map.points_left(), 1);
+    assert_eq!(map.score_left(), 1);
 
     let mut new_robot = NearsightBot::new(0, Arc::clone(&map));
     new_robot.run();
-    assert_eq!(map.points_left(), 0);
+    assert_eq!(map.score_left(), 0);
     assert_eq!(new_robot.score(), 1);
 }

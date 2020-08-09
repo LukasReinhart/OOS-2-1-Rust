@@ -68,7 +68,7 @@ impl Clone for WorldPosition {
 pub struct WorldMap {
     width: usize,
     height: usize,
-    points_left: Mutex<usize>,
+    score_left: Mutex<usize>,
     fields: Mutex<Vec<usize>>,
 }
 
@@ -82,7 +82,7 @@ impl WorldMap {
         WorldMap {
             width,
             height,
-            points_left: Mutex::new(0),
+            score_left: Mutex::new(0),
             fields: Mutex::new(fields),
         }
     }
@@ -91,14 +91,14 @@ impl WorldMap {
     pub fn randomize_fields(&self, max_field_score: usize) {
         if let Ok(fields) = self.fields.lock() {
             let mut fields = fields;
-            if let Ok(points_left) = self.points_left.lock() {
-                let mut points_left = points_left;
+            if let Ok(score_left) = self.score_left.lock() {
+                let mut score_left = score_left;
 
                 let mut rng = rand::thread_rng();
                 for i in 0..fields.len() {
-                    let new_points = (rng.gen::<usize>() % max_field_score) + 1;
-                    *points_left += new_points - fields[i];
-                    fields[i] = new_points;
+                    let new_score = (rng.gen::<usize>() % max_field_score) + 1;
+                    *score_left += new_score - fields[i];
+                    fields[i] = new_score;
                 }
             }
         }
@@ -112,10 +112,10 @@ impl WorldMap {
             let mut fields = fields;
             let idx = pos.to_index();
             if fields[idx] > 0 {
-                if let Ok(points_left) = self.points_left.lock() {
-                    let mut points_left = points_left;
+                if let Ok(score_left) = self.score_left.lock() {
+                    let mut score_left = score_left;
 
-                    *points_left -= 1;
+                    *score_left -= 1;
                     fields[idx] -= 1;
                     harvested += 1;
                 }
@@ -126,7 +126,7 @@ impl WorldMap {
     }
 
     /// Returns the amount of score at the given position.
-    pub fn points_at(&self, pos: &WorldPosition) -> usize {
+    pub fn score_at(&self, pos: &WorldPosition) -> usize {
         if let Ok(fields) = self.fields.lock() {
             let idx = pos.to_index();
             fields[idx]
@@ -136,9 +136,9 @@ impl WorldMap {
     }
 
     /// Returns an internal counter of score remaining on the fields.
-    pub fn points_left(&self) -> usize {
-        if let Ok(points_left) = self.points_left.lock() {
-            *points_left
+    pub fn score_left(&self) -> usize {
+        if let Ok(score_left) = self.score_left.lock() {
+            *score_left
         } else {
             0
         }
@@ -184,7 +184,7 @@ mod tests {
     fn worldmap_total_score() {
         let map = WorldMap::new(5, 5);
         map.randomize_fields(5);
-        assert_ne!(map.points_left(), 0);
+        assert_ne!(map.score_left(), 0);
     }
 
     #[test]
@@ -192,7 +192,7 @@ mod tests {
         let map = WorldMap::new(5, 5);
         map.randomize_fields(5);
         let pos = WorldPosition::new(&map, 2, 2);
-        assert_ne!(map.points_at(&pos), 0);
+        assert_ne!(map.score_at(&pos), 0);
     }
 
     #[test]
@@ -208,9 +208,9 @@ mod tests {
         let map = WorldMap::new(5, 5);
         map.randomize_fields(5);
         let pos = WorldPosition::new(&map, 2, 2);
-        let score_before = map.points_at(&pos);
+        let score_before = map.score_at(&pos);
         map.deduct_score_at(&pos);
-        let score_after = map.points_at(&pos);
+        let score_after = map.score_at(&pos);
         assert_eq!(score_before, score_after + 1);
     }
 }
