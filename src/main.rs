@@ -1,3 +1,41 @@
+// FOREWORD
+// 
+// Hi! I assume you have no idea what Rust is.
+// Rust is a programming language, somewhat different from C++.
+//
+// Pointer access is inferred by the compiler.
+// To guarantee this happens safely, there are "ownership" rules:
+// * Only one variable can own a value
+// * Ownership can be transferred "moved" by the owner
+// * Immutable (Read-Only) references are allowed (using &)
+// * Only one mutable (Read-Write) reference can exist at a time
+// 
+// Allocated memory gets freed automatically.
+// However, this does not use a garbage collector.
+// Instead, the compiler inserts the necessary code.
+// This requires clear "lifetimes" of values.
+// Lifetimes across threads can be very tricky.
+//
+// Because of several caveats regarding Inheritance,
+// Rust does not have objects in the way C++ does.
+// However, it has structs which can have methods attached.
+// Also, structs can implement traits (shared method signatures).
+//
+// While C++ also allows for automated testing,
+// Cargo (Rusts standard project manager) has it built-in.
+// This project has several Unit Tests in the respective files.
+// Further Integration Tests can be put into the "tests" dir.
+// Note that the test modules only compile for test builds.
+//
+// There are more things to watch out for.
+// Here is an online book to read into:
+// <https://doc.rust-lang.org/book/>
+// Working with Rust sure has been fun so far.
+// Performance is roughly on-par with C++, with some variance.
+//
+// -LG
+
+// Dependencies
 use fhtw_roboter_wettsammeln;
 use fhtw_roboter_wettsammeln::WorldMap;
 use fhtw_roboter_wettsammeln::robots::{Robot, RandomBot, NearsightBot};
@@ -8,7 +46,7 @@ use std::thread;
 use std::sync::Arc;
 use std::time::SystemTime;
 
-
+/// Fetches stdin and tries to parse it to type T.
 fn get_user_input<T>(fancyname: &str) -> T
 where T: FromStr {
     loop {
@@ -38,6 +76,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let map = WorldMap::new(map_size, map_size);
     map.randomize_fields(max_field_score);
 
+    // Map must be wrapped in an "atomic reference counter" (="arc") to be used across threads safely.
     let map = Arc::new(map);
 
     let mut randombots = Vec::with_capacity(amount_randombots);
@@ -57,8 +96,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut threads = Vec::with_capacity(amount_randombots + amount_nearsightbots);
     let mut results = Vec::with_capacity(amount_randombots + amount_nearsightbots);
 
+    // Start the benchmark timer!
     let start_time = SystemTime::now();
 
+    // Due to Rusts ownership and lifetime rules, we cannot access the bot in the main thread and another one.
+    // The new thread could pass the bot back when it joins, but we only really care about the score.
     for mut robot in randombots.pop() {
         let new_thread = thread::spawn( move || {
             robot.run();
@@ -73,12 +115,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         } );
         threads.push(new_thread);
     }
+    // Now that every thread has been spawned, we can wait for them to join back.
     for new_thread in threads {
         match new_thread.join() {
             Ok(thing) => results.push(thing),
             _ => continue
         }
-        
     }
 
     match start_time.elapsed() {
@@ -86,6 +128,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Err(_) => println!("Could not determine duration."),
     }
 
+    // Evaluate the results...
     let mut best_robot = &results[0];
     for robot in &results {
         if robot.0 > best_robot.0 {
@@ -95,5 +138,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!("Best Robot was {}", best_robot.1);
 
+    // No errors, woohoo!
     Ok(())
 }

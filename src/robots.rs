@@ -5,13 +5,17 @@ use std::thread;
 use crate::WorldPosition;
 use crate::WorldMap;
 
+// Shared signatures all x-Bots must have
 pub trait Robot {
+    /// Teleports the Robot to a random location in the map.
     fn randomize_position(&mut self);
+    /// Returns the amount of score points collected by the robot.
     fn score(&self) -> usize;
+    /// Sends Robot on an uncontrollable rampage through its world map until all score is gone.
     fn run(&mut self);
 }
 
-
+/// Moves aimlessly, taking score at every step.
 pub struct RandomBot {
     id: usize,
     score: usize,
@@ -48,12 +52,10 @@ impl Robot for RandomBot {
         self.pos.randomize();
     }
 
-    /// Returns the amount of score points collected by the robot.
     fn score(&self) -> usize {
         self.score
     }
 
-    /// Programs and unleashes the robot, sending it on an uncontrollable rampage through its world map until all score is gone.
     fn run(&mut self) {
         while self.map.points_left() > 0 {
             // move
@@ -68,7 +70,7 @@ impl Robot for RandomBot {
     }
 }
 
-
+/// Moves towards octagonally adjacent score and takes some, else wanders aimlessly.
 pub struct NearsightBot {
     id: usize,
     score: usize,
@@ -92,7 +94,7 @@ impl NearsightBot {
         }
     }
 
-    /// Step in random (within world map bounds) direction.
+    /// Step in any (within world map bounds) direction.
     fn step(&mut self) {
         // Go to score if possible
         if let Some(new_pos) = try_step(&self.pos, &self.map, true) {
@@ -112,12 +114,10 @@ impl Robot for NearsightBot {
         self.pos.randomize();
     }
 
-    /// Returns the amount of score points collected by the robot.
     fn score(&self) -> usize {
         self.score
     }
 
-    /// Programs and unleashes the robot, sending it on an uncontrollable rampage through its world map until all score is gone.
     fn run(&mut self) {
         while self.map.points_left() > 0 {
             // move
@@ -132,7 +132,9 @@ impl Robot for NearsightBot {
     }
 }
 
-/// Shared function for taking a step in a random, valid direction. Optionally only considers tiles with score.
+/// Shared function for taking a step in a random, valid, ortagonal direction.
+/// Optionally considers only tiles with score valid.
+/// Returns 'None' if none of the four directions are valid.
 fn try_step(current_pos: &WorldPosition, map: &WorldMap, check_score: bool) -> Option<WorldPosition> {
     let dir = rand::random::<u8>() % 4;
 

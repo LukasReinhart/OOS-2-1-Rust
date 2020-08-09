@@ -2,6 +2,7 @@ use std::sync::Mutex;
 use rand;
 use rand::Rng;
 
+/// Represents a bounded position within a 'WorldMap'.
 pub struct WorldPosition {
     x: usize,
     y: usize,
@@ -45,7 +46,7 @@ impl WorldPosition {
         self.x + self.y * self.map_width
     }
 
-    // Teleports the robot to a random position (within world map bounds).
+    /// Sets to a random position (within world map bounds).
     pub fn randomize(&mut self) {
         self.x = rand::random::<usize>() % self.map_width;
         self.y = rand::random::<usize>() % self.map_height;
@@ -63,6 +64,7 @@ impl Clone for WorldPosition {
     }
 }
 
+/// Thread-safe rectangular area for bots to collect score in.
 pub struct WorldMap {
     width: usize,
     height: usize,
@@ -85,7 +87,7 @@ impl WorldMap {
         }
     }
 
-    /// Sets all fields to a random value between (including) 1 to 'max_field_Score' each.
+    /// Sets all fields to a random value between (including) 1 to 'max_field_score' each.
     pub fn randomize_fields(&self, max_field_score: usize) {
         if let Ok(fields) = self.fields.lock() {
             let mut fields = fields;
@@ -123,6 +125,7 @@ impl WorldMap {
         harvested
     }
 
+    /// Returns the amount of score at the given position.
     pub fn points_at(&self, pos: &WorldPosition) -> usize {
         if let Ok(fields) = self.fields.lock() {
             let idx = pos.to_index();
@@ -132,7 +135,7 @@ impl WorldMap {
         }
     }
 
-    /// Returns an internal counter of points remaining on the fields.
+    /// Returns an internal counter of score remaining on the fields.
     pub fn points_left(&self) -> usize {
         if let Ok(points_left) = self.points_left.lock() {
             *points_left
