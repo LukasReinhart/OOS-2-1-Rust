@@ -8,7 +8,7 @@ fn robot_score() {
     map.randomize_fields(1);
     assert_eq!(map.points_left(), 1);
 
-    let new_robot = RandomBot::new(0, Arc::clone(&map));
+    let mut new_robot = RandomBot::new(0, Arc::clone(&map));
     let result = new_robot.run();
     assert_eq!(map.points_left(), 0);
     assert_eq!(result.0, 1);

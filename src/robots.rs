@@ -1,60 +1,16 @@
 use std::sync::Arc;
 use std::fmt;
 use std::thread;
-use std::ops::{Deref, DerefMut};
 
 use crate::WorldPosition;
 use crate::WorldMap;
 
-pub struct RobotCore {
+
+pub struct RandomBot {
     id: usize,
     score: usize,
     pos: WorldPosition,
     map: Arc<WorldMap>,
-}
-
-impl RobotCore {
-    pub fn new(id: usize, map: Arc<WorldMap>) -> Self {
-        Self {
-            id,
-            score: 0,
-            pos: WorldPosition::new(&map, 0, 0),
-            map,
-        }
-    }
-
-    /// Returns the amount of score points collected by the robot.
-    pub fn score(&self) -> usize {
-        self.score
-    }
-
-    /// Programs and unleashes the robot, sending it on an uncontrollable rampage through its world map until all score is gone.
-    pub fn run(&mut self, step_fn: fn(&mut Self)) {
-        while self.map.points_left() > 0 {
-            step_fn(self);
-            
-            // give others a chance?
-            thread::yield_now();
-        }
-    }
-
-}
-
-
-pub struct RandomBot(RobotCore);
-
-impl Deref for RandomBot {
-    type Target = RobotCore;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for RandomBot {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
 }
 
 impl fmt::Display for RandomBot {
@@ -65,49 +21,52 @@ impl fmt::Display for RandomBot {
 
 impl RandomBot {
     pub fn new(id: usize, map: Arc<WorldMap>) -> Self {
-        Self(
-            RobotCore::new(id, map)
-        )
+        Self {
+            id,
+            score: 0,
+            pos: WorldPosition::new(&map, 0, 0),
+            map,
+        }
     }
 
     pub fn randomize_position(&mut self) {
         self.pos.randomize();
     }
 
+    /// Returns the amount of score points collected by the robot.
+    pub fn score(&self) -> usize {
+        self.score
+    }
+
     /// Step in random (within world map bounds) direction.
-    fn step_fn(robot: &mut RobotCore) {
-        if let Some(new_pos) = try_step(&robot.pos, &robot.map, false) {
-            robot.pos = new_pos;
+    fn step(&mut self) {
+        if let Some(new_pos) = try_step(&self.pos, &self.map, false) {
+            self.pos = new_pos;
         }
-
-        robot.score += robot.map.deduct_score_at(&robot.pos);
-    }
-    
-    pub fn step(&mut self) {
-        Self::step_fn(&mut self.0);
     }
 
-    pub fn run(mut self) -> (usize, String) {
-        self.0.run(Self::step_fn);
+    /// Programs and unleashes the robot, sending it on an uncontrollable rampage through its world map until all score is gone.
+    pub fn run(&mut self) -> (usize, String) {
+        while self.map.points_left() > 0 {
+            // move
+            self.step();
+
+            // attack
+            self.score += self.map.deduct_score_at(&self.pos);
+            
+            // end of turn
+            thread::yield_now();
+        }
         (self.score, self.to_string())
     }
 }
 
 
-pub struct NearsightBot(RobotCore);
-
-impl Deref for NearsightBot {
-    type Target = RobotCore;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for NearsightBot {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
+pub struct NearsightBot {
+    id: usize,
+    score: usize,
+    pos: WorldPosition,
+    map: Arc<WorldMap>,
 }
 
 impl fmt::Display for NearsightBot {
@@ -118,35 +77,50 @@ impl fmt::Display for NearsightBot {
 
 impl NearsightBot {
     pub fn new(id: usize, map: Arc<WorldMap>) -> Self {
-        Self(
-            RobotCore::new(id, map)
-        )
+        Self {
+            id,
+            score: 0,
+            pos: WorldPosition::new(&map, 0, 0),
+            map,
+        }
     }
+
 
     pub fn randomize_position(&mut self) {
         self.pos.randomize();
     }
 
+    /// Returns the amount of score points collected by the robot.
+    pub fn score(&self) -> usize {
+        self.score
+    }
+
     /// Step in random (within world map bounds) direction.
-    fn step_fn(robot: &mut RobotCore) {
+    fn step(&mut self) {
         // Go to score if possible
-        if let Some(new_pos) = try_step(&robot.pos, &robot.map, true) {
-            robot.pos = new_pos;
+        if let Some(new_pos) = try_step(&self.pos, &self.map, true) {
+            self.pos = new_pos;
         }
         // Go elsewhere to find score farther away
-        else if let Some(new_pos) = try_step(&robot.pos, &robot.map, false) {
-            robot.pos = new_pos;
+        else if let Some(new_pos) = try_step(&self.pos, &self.map, false) {
+            self.pos = new_pos;
         }
 
-        robot.score += robot.map.deduct_score_at(&robot.pos);
+        self.score += self.map.deduct_score_at(&self.pos);
     }
 
-    pub fn step(&mut self) {
-        Self::step_fn(&mut self.0);
-    }
+    /// Programs and unleashes the robot, sending it on an uncontrollable rampage through its world map until all score is gone.
+    pub fn run(&mut self) -> (usize, String) {
+        while self.map.points_left() > 0 {
+            // move
+            self.step();
 
-    pub fn run(mut self) -> (usize, String) {
-        self.0.run(Self::step_fn);
+            // attack
+            self.score += self.map.deduct_score_at(&self.pos);
+            
+            // end of turn
+            thread::yield_now();
+        }
         (self.score, self.to_string())
     }
 }
